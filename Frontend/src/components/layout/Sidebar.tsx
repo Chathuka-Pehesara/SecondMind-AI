@@ -21,8 +21,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  const userInitials = user?.full_name 
-    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) 
+  const userInitials = user?.full_name
+    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'U';
 
   const menuItems = [
@@ -120,19 +120,28 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </button>
           </div>
 
-          {/* Profile Card Mock */}
-          <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-zinc-800/20 transition-all cursor-pointer group">
+          {/* Profile Card Dynamic Integration */}
+          <div className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-slate-100/50 dark:hover:bg-zinc-800/20 transition-all group relative">
             <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-brand-500/10 flex items-center justify-center font-display font-semibold text-brand-600 dark:text-brand-400 border border-brand-500/20">
-              JD
+              {userInitials}
               <span className="absolute bottom-0 right-0 w-2 h-2 bg-emerald-500 border border-white dark:border-zinc-950 rounded-full" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-slate-800 dark:text-zinc-200 truncate group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">John Doe</p>
-              <p className="text-[10px] text-slate-500 dark:text-zinc-450 truncate">john@secondmind.ai</p>
+              <p className="text-xs font-semibold text-slate-800 dark:text-zinc-200 truncate group-hover:text-brand-500 dark:group-hover:text-brand-400 transition-colors">
+                {user?.full_name || 'User Profile'}
+              </p>
+              <p className="text-[10px] text-slate-500 dark:text-zinc-455 truncate">
+                {user?.email || 'authenticated'}
+              </p>
             </div>
-            <NavLink to="/settings" className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 cursor-pointer">
-              <Settings className="w-4 h-4" />
-            </NavLink>
+            <button
+              onClick={logout}
+              title="Logout"
+              className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 cursor-pointer p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800/40"
+            >
+              {/* Logout icon */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
           </div>
         </div>
       </aside>
