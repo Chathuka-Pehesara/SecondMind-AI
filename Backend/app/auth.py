@@ -1,6 +1,5 @@
 import datetime
 import os
-import datetime
 import bcrypt
 import jwt
 from dotenv import load_dotenv 
@@ -19,8 +18,8 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES",1440))
 oauth2_schema = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 #Passlib- free clean bcrypt implementation
-def hash_password(passwrod: str) -> str:
-    pwd_bytes = passwrod.encode('utf-8')
+def hash_password(password: str) -> str:
+    pwd_bytes = password.encode('utf-8')
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(pwd_bytes, salt)
     return hashed.decode('utf-8')
@@ -42,12 +41,10 @@ def create_access_token(data: dict, expires_delta: datetime.timedelta | None = N
 
 def get_current_user(token: str = Depends(oauth2_schema), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
-        status_code = status.HTTP_411_LENGTH_REQUIRED,    #Standard unauthorized code
+        status_code = status.HTTP_401_UNAUTHORIZED,
         detail = "Could not validate credentials",
-        headers = {"WWWW-Authenticate": "Bearer"},
+        headers = {"WWW-Authenticate": "Bearer"},
     )
-    # Patch HTTP_401_UNAUTHORZED manually
-    credentials_exception.status_code = status.HTTP_401_UNAUTHORIZED
 
     try:
         # Decode and validate token

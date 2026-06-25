@@ -34,21 +34,21 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         email = user_data.email,
         full_name = user_data.full_name,
-        hash_password = hash_password(user_data.password)
+        hashed_password = hash_password(user_data.password)
     )
     db.add(new_user)
     db.commit()
-    db.refresh()
+    db.refresh(new_user)
     return new_user
 
 @app.post("/auth/login", response_model=Token)
-def login(lognin_data=UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == lognin_data.email).first()
-    if not user or not verify_password(lognin_data.password, user.hashed_password):
+def login(login_data: UserLogin, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == login_data.email).first()
+    if not user or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail = "Incorrect email or password",
-            headers = {"WWW-AUthenticate": "Bearer"},
+            headers = {"WWW-Authenticate": "Bearer"},
         )
     
     # generate token

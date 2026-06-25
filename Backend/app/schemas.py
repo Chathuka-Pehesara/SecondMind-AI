@@ -8,11 +8,11 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, message="Password must be at least 6 charcters long")
 
-class userResonse(UserBase):
+class UserResponse(UserBase):
     id: int
     created_at: datetime
 
-    class config:
+    class Config:
         from_attributes = True
 
 class UserLogin(BaseModel):
