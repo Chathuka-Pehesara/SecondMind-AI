@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Settings, 
-  Cpu, 
-  Database, 
-  Check, 
+import {
+  Settings,
+  Cpu,
+  Database,
+  Check,
   Lock,
   Globe,
   Trash2
@@ -14,9 +14,8 @@ import { Button } from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
 
 type ActiveTab = 'general' | 'engine' | 'storage';
-
+const { user } = useAuth(); //
 export const SettingsPage: React.FC = () => {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('general');
   const [autosave, setAutosave] = useState(true);
   const [devMode, setDevMode] = useState(false);
@@ -83,7 +82,7 @@ export const SettingsPage: React.FC = () => {
                   <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider pl-1">Display Name</label>
                   <input
                     type="text"
-                    defaultValue={user?.full_name || ''}
+                    defaultValue="John Doe"
                     className="w-full px-3.5 py-2 text-xs bg-slate-100/50 dark:bg-zinc-900/40 border border-slate-200/60 dark:border-white/5 rounded-xl focus:outline-none focus:border-brand-500/50 dark:focus:border-brand-400/50 focus:bg-white dark:focus:bg-zinc-900/80 transition-all text-slate-800 dark:text-zinc-200"
                   />
                 </div>
@@ -91,7 +90,7 @@ export const SettingsPage: React.FC = () => {
                   <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider pl-1">Primary Email</label>
                   <input
                     type="email"
-                    defaultValue={user?.email || ''}
+                    defaultValue="john@secondmind.ai"
                     className="w-full px-3.5 py-2 text-xs bg-slate-100/50 dark:bg-zinc-900/40 border border-slate-200/60 dark:border-white/5 rounded-xl focus:outline-none focus:border-brand-500/50 dark:focus:border-brand-400/50 focus:bg-white dark:focus:bg-zinc-900/80 transition-all text-slate-800 dark:text-zinc-200"
                   />
                 </div>
