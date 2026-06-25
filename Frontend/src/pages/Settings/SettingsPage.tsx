@@ -11,10 +11,12 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
+import { useAuth } from '../../context/AuthContext';
 
 type ActiveTab = 'general' | 'engine' | 'storage';
 
 export const SettingsPage: React.FC = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<ActiveTab>('general');
   const [autosave, setAutosave] = useState(true);
   const [devMode, setDevMode] = useState(false);
@@ -45,11 +47,10 @@ export const SettingsPage: React.FC = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all cursor-pointer ${
-                isActive 
-                  ? 'text-brand-600 dark:text-brand-400' 
-                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100/50 dark:hover:bg-zinc-800/10'
-              }`}
+              className={`relative flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-t-xl transition-all cursor-pointer ${isActive
+                ? 'text-brand-600 dark:text-brand-400'
+                : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100/50 dark:hover:bg-zinc-800/10'
+                }`}
             >
               {isActive && (
                 <motion.div
@@ -82,7 +83,7 @@ export const SettingsPage: React.FC = () => {
                   <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider pl-1">Display Name</label>
                   <input
                     type="text"
-                    defaultValue="John Doe"
+                    defaultValue={user?.full_name || ''}
                     className="w-full px-3.5 py-2 text-xs bg-slate-100/50 dark:bg-zinc-900/40 border border-slate-200/60 dark:border-white/5 rounded-xl focus:outline-none focus:border-brand-500/50 dark:focus:border-brand-400/50 focus:bg-white dark:focus:bg-zinc-900/80 transition-all text-slate-800 dark:text-zinc-200"
                   />
                 </div>
@@ -90,7 +91,7 @@ export const SettingsPage: React.FC = () => {
                   <label className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider pl-1">Primary Email</label>
                   <input
                     type="email"
-                    defaultValue="john@secondmind.ai"
+                    defaultValue={user?.email || ''}
                     className="w-full px-3.5 py-2 text-xs bg-slate-100/50 dark:bg-zinc-900/40 border border-slate-200/60 dark:border-white/5 rounded-xl focus:outline-none focus:border-brand-500/50 dark:focus:border-brand-400/50 focus:bg-white dark:focus:bg-zinc-900/80 transition-all text-slate-800 dark:text-zinc-200"
                   />
                 </div>
@@ -260,11 +261,10 @@ const Toggle: React.FC<ToggleProps> = ({ active, onToggle }) => {
   return (
     <button
       onClick={onToggle}
-      className={`relative w-11 h-6 rounded-full flex items-center p-0.5 transition-colors cursor-pointer border focus:outline-none ${
-        active 
-          ? 'bg-brand-600 border-brand-600/30' 
-          : 'bg-slate-200 border-slate-300 dark:bg-zinc-800 dark:border-zinc-700/60'
-      }`}
+      className={`relative w-11 h-6 rounded-full flex items-center p-0.5 transition-colors cursor-pointer border focus:outline-none ${active
+        ? 'bg-brand-600 border-brand-600/30'
+        : 'bg-slate-200 border-slate-300 dark:bg-zinc-800 dark:border-zinc-700/60'
+        }`}
     >
       <motion.div
         layout
