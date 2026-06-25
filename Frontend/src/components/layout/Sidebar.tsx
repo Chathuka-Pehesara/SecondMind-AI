@@ -1,15 +1,16 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Brain, 
-  Network, 
-  X, 
+import {
+  LayoutDashboard,
+  Settings,
+  Brain,
+  Network,
+  X,
   Sparkles,
   Command
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -18,6 +19,11 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
+
+  const userInitials = user?.full_name 
+    ? user.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) 
+    : 'U';
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -30,7 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       {/* Mobile Backdrop Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden cursor-pointer"
           onClick={onClose}
         />
@@ -38,9 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 glass-effect border-r border-slate-200/50 dark:border-white/10 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-screen ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col w-64 glass-effect border-r border-slate-200/50 dark:border-white/10 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-screen ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Header / Brand Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 dark:border-white/5">
@@ -54,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </NavLink>
 
           {/* Close button for mobile */}
-          <button 
+          <button
             onClick={onClose}
             className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800/60 lg:hidden text-slate-500 dark:text-zinc-400 cursor-pointer"
           >
@@ -73,11 +78,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 onClick={() => {
                   if (window.innerWidth < 1024) onClose();
                 }}
-                className={({ isActive }) => 
-                  `relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group cursor-pointer ${
-                    isActive 
-                      ? 'text-brand-600 dark:text-brand-400' 
-                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 hover:bg-slate-100/50 dark:hover:bg-zinc-800/20'
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group cursor-pointer ${isActive
+                    ? 'text-brand-600 dark:text-brand-400'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 hover:bg-slate-100/50 dark:hover:bg-zinc-800/20'
                   }`
                 }
               >
@@ -88,10 +92,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                
-                <item.icon className={`w-5 h-5 relative z-10 transition-transform group-hover:scale-105 duration-200 ${
-                  isActive ? 'text-brand-500 dark:text-brand-400' : 'text-slate-400 dark:text-zinc-500 group-hover:text-slate-600 dark:group-hover:text-zinc-300'
-                }`} />
+
+                <item.icon className={`w-5 h-5 relative z-10 transition-transform group-hover:scale-105 duration-200 ${isActive ? 'text-brand-500 dark:text-brand-400' : 'text-slate-400 dark:text-zinc-500 group-hover:text-slate-600 dark:group-hover:text-zinc-300'
+                  }`} />
                 <span className="relative z-10">{item.name}</span>
               </NavLink>
             );
