@@ -1,5 +1,6 @@
 from pydantic import BaseModel,EmailStr, Field
 from datetime import datetime
+from typing import List, Optional
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -26,5 +27,30 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: str | None = None
 
+class ConversationBase(BaseModel):
+    title: str
 
+class conversationResponse(ConversationBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+    
+class MessageBase(BaseModel):
+    role: str
+    content: str
+
+class MessageCreate(BaseModel):
+    content: str
+
+class MessageResponse(MessageBase):
+    id: int
+    conversation_id: str
+    created_at: datetime
+
+    class config:
+        from_attributes = True 
 
