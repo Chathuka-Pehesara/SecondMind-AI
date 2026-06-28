@@ -16,30 +16,30 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     # Relationships
-    conversations = relationship("conversation", back_populates="user", cascade="all, delete-orphan")
+    conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
 
 class Conversations(Base):
     __tablename__ = "Conversations"
     
     id = Column(String, primary_key=True, index=True)
-    user_id = Column(Tnteger, ForeignKey("user_id", ondelete="CASCADE"), nullable=False)
-    titile = Column(String, nullbase="False", default = "New Chat")
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    titile = Column(String, nullable=False, default = "New Chat")
     created_at = Column(DateTime, default = datetime.datetime.utcnow)
     updated_at = Column(DateTime, default = datetime.datetime.utcnow)
 
     # Relationships
-    user = relationship("User", back_populates="Conversations")
-    message = relationship("Message", back_populates="conversations", cascade="all, delete-orphan")
+    user = relationship("User", back_populates="conversations")
+    message = relationship("Message", back_populates="Conversations", cascade="all, delete-orphan")
 
 class Message(Base):
     __tablename__ = "Message"
 
     id = Column(String, primary_key=True, index=True)
-    Conversation_id = Column(String, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
+    Conversation_id = Column(String, ForeignKey("Conversations.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)
     content = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow) 
 
     # Relationships
-    Conversations = relationships("Conversation", back_populates="message")
+    Conversations = relationship("Conversation", back_populates="message")
     

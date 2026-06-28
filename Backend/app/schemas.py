@@ -30,7 +30,7 @@ class TokenData(BaseModel):
 class ConversationBase(BaseModel):
     title: str
 
-class conversationResponse(ConversationBase):
+class ConversationResponse(ConversationBase):
     id: int
     user_id: int
     created_at: datetime

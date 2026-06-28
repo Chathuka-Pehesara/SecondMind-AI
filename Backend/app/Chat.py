@@ -6,14 +6,14 @@ import uuid
 import datetime
 import asyncio
 from typing import List
-from fastapi import APIRouter, Depends, HHTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 import google.generativeai as genai
 
 from app.database import get_db, sessionLocal
-from app.models import User, Conversation, Message
-from app.schemas import ConversationResponse, MessageResponse, MessageCreate
+from app.models import User, Conversations , Message
+from app.schemas import ConversationResponse , MessageResponse, MessageCreate
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -91,7 +91,7 @@ def create_conversation(
     db: Session = Depends(get_db)
 ):
     conversation_id =  str(uuid.uuid4())
-    new_conversation =  Conversation(
+    new_conversation =  Conversations(
         id  = conversation_id,
         user_id = current_user.id,
         title = "New Chat"
@@ -106,9 +106,9 @@ def get_coversations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return db.query(Conversation).filter(
-        Conversation.id == current_user.id
-    ).order_by(Conversation.update_at.desc()).all()
+    return db.query(Conversations).filter(
+        Conversations.id == current_user.id
+    ).order_by(Conversations.update_at.desc()).all()
 
 
 @router.delete("/conversations/{conversation_id}")
@@ -118,12 +118,12 @@ def delete_conversation(
     db:Session =  Depends(get_db)
 ):
     
-    conversation = db.query(Conversation).filter(
-        Conversation.id == conversation.id,
-        Conversation.user_id == current_user.id
+    conversation = db.query(Conversations).filter(
+        Conversations.id == conversation.id,
+        Conversations.user_id == current_user.id
     ).first()
     if not conversation:
-        raise HHTPException(status_code=404, details="Conversation not found")
+        raise HTTPException(status_code=404, detail="Conversation not found")
 
     db.delete(conversation)
     db.commit()
@@ -136,13 +136,13 @@ def get_message(
     current_user: User = Depends(get_current_user),
     db: Session =  Depends(get_db)
 ):
-    conversation = db.query(Conversation).filter(
-        Conversation.id == conversation.id,
+    conversation = db.query(Conversations).filter(
+        Conversations.id == conversation.id,
         conversation.user_id == current_user.id
     ).first()
 
     if not conversation:
-        raise HHTPException(status_code=404, details="Conversation not found")
+        raise HTTPException(status_code=404, detail="Conversation not found")
 
     return db.query(Message).filter(
         Message.Conversation_id == conversation.id
@@ -156,9 +156,9 @@ def send_message_stream(
     curretn_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    conversation = db.query(Conversation).filter(
+    conversation = db.query(Conversations).filter(
         conversation.id == conversation.id,
-        Conversation.user_id == curretn_user.id
+        Conversations.user_id == curretn_user.id
     ).first()
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -179,10 +179,10 @@ def regenerate_response(
     db: Session = Depends(get_db)
     ):
 
-    conversation = db.query(Conversation).filter(
-        Conversation.id == conversation.id,
-        Conversation.user_id == current_user.id
-    ).first()_
+    conversation = db.query(Conversations).filter(
+        Conversations.id == conversation.id,
+        Conversations.user_id == current_user.id
+    ).first()
     if not conversation:
         raise HTTPException(status_code=404, detail="Converation not found")
 

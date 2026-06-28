@@ -6,7 +6,7 @@ from app.database import Base, engine, get_db
 from app.models import User
 from app.schemas import UserCreate, UserResponse, UserLogin, Token
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
-from app.chat import router as chat_router
+from app.Chat import router as chat_router
 
 # create database tables
 Base.metadata.create_all(bind=engine)
