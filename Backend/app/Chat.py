@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 import google.generativeai as genai
 
 from app.database import get_db, sessionLocal
-from app.models import User, Conversations , Message
-from app.schemas import ConversationResponse , MessageResponse, MessageCreate
+from app.models import User, Conversation, Message
+from app.schemas import ConversationResponse, MessageResponse, MessageCreate
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -27,7 +27,7 @@ else:
 
 def get_gemini_model():
     if not GEMINI_API_KEY:
-        raise HHTPException(
+        raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = "Gemini API key is not configured on the server"
         )
@@ -38,7 +38,7 @@ async def generate_gemini_stream (conversation_id: str, prompt_content: str):
 
     db = sessionLocal()
     try:
-        db_messages = db.query(Message).filter(Message.Conversation_id == conversation_id).order_by(Message.created_at.asc()).all()
+        db_messages = db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.created_at.asc()).all()
 
         # Format history for Gemini API
         gemini_history = []
@@ -91,7 +91,7 @@ def create_conversation(
     db: Session = Depends(get_db)
 ):
     conversation_id =  str(uuid.uuid4())
-    new_conversation =  Conversations(
+    new_conversation =  Conversation(
         id  = conversation_id,
         user_id = current_user.id,
         title = "New Chat"
@@ -102,13 +102,13 @@ def create_conversation(
     return new_conversation
 
 @router.get("/conversations", response_model=List[ConversationResponse])
-def get_coversations(
+def get_conversations(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return db.query(Conversations).filter(
-        Conversations.id == current_user.id
-    ).order_by(Conversations.update_at.desc()).all()
+    return db.query(Conversation).filter(
+        Conversation.user_id == current_user.id
+    ).order_by(Conversation.updated_at.desc()).all()
 
 
 @router.delete("/conversations/{conversation_id}")
@@ -118,34 +118,33 @@ def delete_conversation(
     db:Session =  Depends(get_db)
 ):
     
-    conversation = db.query(Conversations).filter(
-        Conversations.id == conversation.id,
-        Conversations.user_id == current_user.id
+    conversation = db.query(Conversation).filter(
+        Conversation.id == conversation_id,
+        Conversation.user_id == current_user.id
     ).first()
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     db.delete(conversation)
     db.commit()
-    return {"Message": "Conversation deleted successfully"
-    }
+    return {"Message": "Conversation deleted successfully"}
 
-@router.get("/conversations/{conversation_id}/,message", response_model=List[MessageResponse])
-def get_message(
+@router.get("/conversations/{conversation_id}/messages", response_model=List[MessageResponse])
+def get_messages(
     conversation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session =  Depends(get_db)
 ):
-    conversation = db.query(Conversations).filter(
-        Conversations.id == conversation.id,
-        conversation.user_id == current_user.id
+    conversation = db.query(Conversation).filter(
+        Conversation.id == conversation_id,
+        Conversation.user_id == current_user.id
     ).first()
 
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     return db.query(Message).filter(
-        Message.Conversation_id == conversation.id
+        Message.conversation_id == conversation_id
     ).order_by(Message.created_at.asc()).all()
 
 
@@ -153,12 +152,12 @@ def get_message(
 def send_message_stream(
     conversation_id: str,
     msg_in: MessageCreate,
-    curretn_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    conversation = db.query(Conversations).filter(
-        conversation.id == conversation.id,
-        Conversations.user_id == curretn_user.id
+    conversation = db.query(Conversation).filter(
+        Conversation.id == conversation_id,
+        Conversation.user_id == current_user.id
     ).first()
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -166,43 +165,51 @@ def send_message_stream(
     # Save message to database
     conversation.updated_at = datetime.datetime.utcnow()
     db.add(conversation)
+
+    # Save user message to database
+    user_message = Message(
+        conversation_id=conversation_id,
+        role="user",
+        content=msg_in.content
+    )
+    db.add(user_message)
     db.commit()
 
     return StreamingResponse(
-        generate_gemini_stream(conversation_id, msg_in.content), media_type="text/ event-stream"
+        generate_gemini_stream(conversation_id, msg_in.content), media_type="text/event-stream"
     )
 
-@router.post("/converations/{converation_id}/regenerate")
+@router.post("/conversations/{conversation_id}/regenerate")
 def regenerate_response(
     conversation_id: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-    ):
-
-    conversation = db.query(Conversations).filter(
-        Conversations.id == conversation.id,
-        Conversations.user_id == current_user.id
+):
+    conversation = db.query(Conversation).filter(
+        Conversation.id == conversation_id,
+        Conversation.user_id == current_user.id
     ).first()
     if not conversation:
-        raise HTTPException(status_code=404, detail="Converation not found")
+        raise HTTPException(status_code=404, detail="Conversation not found")
 
-    message = db.query(Message).filter(
-        Message.Conversation_id == conversation.id
+    messages = db.query(Message).filter(
+        Message.conversation_id == conversation_id
     ).order_by(Message.created_at.desc()).all()
 
-    if not message:
+    if not messages:
         raise HTTPException(status_code=404, detail="No messages found in this conversation")
     
-    last_msg = message[0]
+    last_msg = messages[0]
     if last_msg.role == "model":
         db.delete(last_msg)
         db.commit()
-        last_user_msg = message[1] if len(message) > 1 else None
+        last_user_msg = messages[1] if len(messages) > 1 else None
     else:
         last_user_msg = last_msg
     
     if not last_user_msg or last_user_msg.role != "user":
-        raise HTTPException(status_code=404, detail="Last source message must be from user to regerate")
+        raise HTTPException(status_code=404, detail="Last source message must be from user to regenerate")
 
     return StreamingResponse(
-        generate_gemini_stream(conversation_id, last_user_msg.content),media_type="text/ event-stream")
+        generate_gemini_stream(conversation_id, last_user_msg.content), media_type="text/event-stream"
+    )

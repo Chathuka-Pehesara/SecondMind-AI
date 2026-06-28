@@ -31,7 +31,7 @@ class ConversationBase(BaseModel):
     title: str
 
 class ConversationResponse(ConversationBase):
-    id: int
+    id: str
     user_id: int
     created_at: datetime
     updated_at: datetime
@@ -47,10 +47,11 @@ class MessageCreate(BaseModel):
     content: str
 
 class MessageResponse(MessageBase):
-    id: int
+    id: str
     conversation_id: str
     created_at: datetime
 
-    class config:
+    class Config:
         from_attributes = True 
+
 

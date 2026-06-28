@@ -62,6 +62,7 @@ export const ChatPage: React.FC = () => {
     // Refs
     const messageEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     // Quick action suggestions
     const suggestions = [
@@ -124,7 +125,9 @@ export const ChatPage: React.FC = () => {
 
     // Scroll to bottom when messages list or stream content changes
     useEffect(() => {
-        messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     }, [messages, streamedText, isStreaming]);
 
     // Auto-resize input textarea
@@ -333,7 +336,7 @@ export const ChatPage: React.FC = () => {
     };
 
     return (
-        <div className="relative flex w-full overflow-hidden border border-slate-200/40 dark:border-white/5 rounded-2xl glass-effect h-[calc(100vh-7rem)] lg:h-[calc(100vh-8rem)]">
+        <div className="relative flex w-full overflow-hidden border border-slate-200/40 dark:border-white/5 rounded-2xl glass-effect h-full">
 
             {/* Mobile Drawer Trigger Bar */}
             <div className="absolute top-2.5 left-2.5 z-20 lg:hidden">
@@ -408,7 +411,7 @@ export const ChatPage: React.FC = () => {
             <main className="flex-1 flex flex-col h-full bg-transparent overflow-hidden">
 
                 {/* Messages Feed Viewport */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
                     <AnimatePresence mode="popLayout">
 
                         {/* Case: Welcome screen on empty chat */}

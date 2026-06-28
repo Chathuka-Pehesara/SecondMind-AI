@@ -23,20 +23,27 @@ export const DashboardLayout: React.FC = () => {
         <TopNav onOpenSidebar={() => setSidebarOpen(true)} />
 
         {/* Dynamic Animated Content Panel */}
-        <div className="flex-1 overflow-y-auto relative">
-          <AnimatePresence mode="wait">
-            <motion.main
-              key={location.pathname}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
-              className="p-6 md:p-8 max-w-7xl mx-auto w-full"
-            >
-              <Outlet />
-            </motion.main>
-          </AnimatePresence>
-        </div>
+        {(() => {
+          const isChatPage = location.pathname === '/dashboard/chat';
+          return (
+            <div className={`flex-1 relative min-h-0 ${isChatPage ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
+              <AnimatePresence mode="wait">
+                <motion.main
+                  key={location.pathname}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.25, ease: 'easeInOut' }}
+                  className={`max-w-7xl mx-auto w-full ${
+                    isChatPage ? 'p-4 md:p-6 h-full flex flex-col overflow-hidden min-h-0' : 'p-6 md:p-8'
+                  }`}
+                >
+                  <Outlet />
+                </motion.main>
+              </AnimatePresence>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

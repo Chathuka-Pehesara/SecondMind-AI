@@ -20,7 +20,7 @@ export const RegisterPage: React.FC = () => {
     useEffect(() => {
         clearError();
         if (isAuthenticated) {
-            navigate('/dashbaord');
+            navigate('/dashboard');
         }
     }, [isAuthenticated, navigate]);
 

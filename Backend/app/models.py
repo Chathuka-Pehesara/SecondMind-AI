@@ -1,8 +1,6 @@
-from sqlalchemy import false
-from sqlalchemy import ForeignKey
-from sqlalchemy import Nullable
 import datetime
-from sqlalchemy import Column, Integer, String, DateTime
+import uuid
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -18,28 +16,29 @@ class User(Base):
     # Relationships
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
 
-class Conversations(Base):
-    __tablename__ = "Conversations"
+class Conversation(Base):
+    __tablename__ = "conversations"
     
-    id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    titile = Column(String, nullable=False, default = "New Chat")
-    created_at = Column(DateTime, default = datetime.datetime.utcnow)
-    updated_at = Column(DateTime, default = datetime.datetime.utcnow)
+    title = Column(String, nullable=False, default="New Chat")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     # Relationships
     user = relationship("User", back_populates="conversations")
-    message = relationship("Message", back_populates="Conversations", cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
 
 class Message(Base):
-    __tablename__ = "Message"
+    __tablename__ = "messages"
 
-    id = Column(String, primary_key=True, index=True)
-    Conversation_id = Column(String, ForeignKey("Conversations.id", ondelete="CASCADE"), nullable=False)
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+    conversation_id = Column(String, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
     role = Column(String, nullable=False)
     content = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow) 
 
     # Relationships
-    Conversations = relationship("Conversation", back_populates="message")
+    conversation = relationship("Conversation", back_populates="messages")
+
     

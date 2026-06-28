@@ -23,6 +23,7 @@
 
   /* Custom BG/Cards */
   --color-dark-bg: #030303;
+  --color-darkBg: #030303;
   --color-dark-card: rgba(18, 18, 22, 0.45);
   --color-dark-border: rgba(255, 255, 255, 0.08);
   --color-dark-text-primary: #f4f4f5;
@@ -33,6 +34,16 @@
   --color-light-border: rgba(0, 0, 0, 0.06);
   --color-light-text-primary: #0f172a;
   --color-light-text-secondary: #475569;
+
+  /* Support non-standard color classes used across pages/components */
+  --color-zinc-450: #8a8a93;
+  --color-zinc-550: #61616a;
+  --color-zinc-555: #5c5c64;
+  --color-zinc-650: #424248;
+  --color-zinc-455: #85858d;
+  --color-brand-350: #b59dfb;
+  --color-slate-455: #8292a2;
+  --color-slate-650: #3b4a5a;
 
   /* Glow Effects */
   --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
@@ -50,12 +61,16 @@
     border-color: var(--color-dark-border);
   }
 
-  body {
-    font-family: var(--font-sans);
+  html, body, #root {
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
-    min-height: 100vh;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-sans);
     background-color: var(--color-light-bg);
     color: var(--color-light-text-primary);
     transition: background-color 0.3s ease, color 0.3s ease;
