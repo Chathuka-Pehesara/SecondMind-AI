@@ -1,3 +1,8 @@
+from sqlalchemy.engine import default
+from sqlalchemy import null
+from operator import index
+from sqlalchemy import ReleaseSavepointClause
+from jwt import __description__
 import datetime
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
@@ -15,7 +20,11 @@ class User(Base):
 
     # Relationships
     conversations = relationship("Conversation", back_populates="user", cascade="all, delete-orphan")
-
+    preferences = relationship("UserPreferences", back_populates="user", cascade="all, delete-orphan")
+    goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
+    facts = relationship("Fact", back_populates="user", cascade="all, delete-orphan")
+    
 class Conversation(Base):
     __tablename__ = "conversations"
     
@@ -41,4 +50,52 @@ class Message(Base):
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")
 
+class UserPreference(Base):
+    __tablename__ = "user_preferences"
     
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id", ondelete ="CASCADE"), nullable=False)
+    key = Column(String, index=True, nullable=False)
+    value = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="preferences")
+
+class Goal(Base):
+    __tablename__ = "goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="active")
+    target_date = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="goals")
+
+class Project(Base):
+    __tablename__ = "projects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="active")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populate="projects")
+
+class Fact(Base):
+    __tablename__ = "facts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populate="facts")
