@@ -54,4 +54,88 @@ class MessageResponse(MessageBase):
     class Config:
         from_attributes = True 
 
+class UserPreferenceBase(BaseModel):
+    key: str = Field(..., min_length=1, max_length=100)
+    value: str = Field(..., min_length=1)
 
+class UserPreferenceCreate(UserPreferenceBase):
+    pass
+
+class UserPreferenceResponse(UserPreferenceBase):
+    id: int
+    user_id: int
+    updated_at: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class GoalBase(BaseModel):
+    title: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None 
+    status: str = "active" # active, completed, archived
+    target_date: Optional[datetime] = None
+
+class GoalCreat(GoalBase):
+    pass
+
+class GoalResponse(GoalBase):
+    id: int
+    user_id: int
+    updated_at: datetime
+    created_at: datetime
+    
+    class config:
+        from_attributes = True
+
+class GoalUpdate(GoalBase):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    target_date: Optional[datetime] = None
+
+class ProjectBase(BaseModel):
+    name: str = Field()
+    description: Optional[str] = None
+    status: str = "active"  # planning, active, completed, on_hold
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectUpdate(ProjectBase):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+
+class ProjectResponse(ProjectBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class config:
+        from_attributes = True
+
+class FactBase(BaseModel):
+    content: str = Field(..., min_length=1)
+
+class FactCreate(FactBase):
+    pass
+
+class FactUpdate(FactBase):
+    pass
+
+class FactResponse(FactBase):
+    id: int
+    user_id: int
+    created_at:  datetime
+    updated_at: datetime
+
+    class config:
+        from_attributes = True
+
+class MemorySummaryResponce(BaseModel):
+    preferences: List[UserPreferenceResponse]
+    goals: List[GoalResponse]
+    projects: List[ProjectResponse]
+    facts: List[FactResponse]
