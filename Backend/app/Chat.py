@@ -25,19 +25,24 @@ if GEMINI_API_KEY:
 else:
     print("WARNING: GEMINI_API_KEY env variable is missing. Streaming will fail untl configured.")
 
-def get_gemini_model():
+# Support system instruction in model configuration
+def get_gemini_model(system_instruction: str = None):
     if not GEMINI_API_KEY:
         raise HTTPException(
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = "Gemini API key is not configured on the server"
         )
 
-    return genai.GenerativeModel("gemini-1.5-flash")
+    return genai.GenerativeModel("gemini-1.5-flash", system_instruction=system_instruction)
 
-async def generate_gemini_stream (conversation_id: str, prompt_content: str):
+async def generate_gemini_stream (conversation_id: str, prompt_content: str, user_id: int): # [MODIFIED ARGUMENTS]
 
     db = sessionLocal()
     try:
+        # Retrieve context from user memory
+        from app.memory import get_user_memory_context
+        memory_context = get_user_memory_context(db, user_id)
+
         db_messages = db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.created_at.asc()).all()
 
         # Format history for Gemini API
@@ -48,7 +53,9 @@ async def generate_gemini_stream (conversation_id: str, prompt_content: str):
             "role": role,
             "parts": [{"text": msg.content}]
             })
-        model = get_gemini_model()
+        
+        # Inject memory context as system instructions
+        model = get_gemini_model(system_instruction=memory_context if memory_context else None)
         loop = asyncio.get_event_loop()
 
         def stream_call():
@@ -176,7 +183,7 @@ def send_message_stream(
     db.commit()
 
     return StreamingResponse(
-        generate_gemini_stream(conversation_id, msg_in.content), media_type="text/event-stream"
+        generate_gemini_stream(conversation_id, msg_in.content, current_user.id), media_type="text/event-stream" # [PASSED USER ID]
     )
 
 @router.post("/conversations/{conversation_id}/regenerate")
@@ -211,5 +218,5 @@ def regenerate_response(
         raise HTTPException(status_code=404, detail="Last source message must be from user to regenerate")
 
     return StreamingResponse(
-        generate_gemini_stream(conversation_id, last_user_msg.content), media_type="text/event-stream"
+        generate_gemini_stream(conversation_id, last_user_msg.content, current_user.id), media_type="text/event-stream" # [PASSED USER ID]
     )
