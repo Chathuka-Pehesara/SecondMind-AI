@@ -7,12 +7,13 @@ from app.models import User
 from app.schemas import UserCreate, UserResponse, UserLogin, Token
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
 from app.Chat import router as chat_router
+from app.memory import router as memory_router # [NEW IMPORT]
 
 # create database tables
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title = "SecondMind AI Authentication Service")
 
-# setup CORS for forntend Reac integration
+# setup CORS for frontend React integration
 app.add_middleware(
     CORSMiddleware,
     allow_origins = ["http://localhost:5173"], # vite development URL
@@ -21,6 +22,7 @@ app.add_middleware(
     allow_headers = ["*"]
 )
 app.include_router(chat_router)
+app.include_router(memory_router) # [NEW ROUTER REGISTRATION]
 
 @app.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
@@ -60,4 +62,3 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
 @app.get("/auth/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
-
