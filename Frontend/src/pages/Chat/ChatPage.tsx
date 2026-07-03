@@ -22,7 +22,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 import { useAuth } from '../../context/AuthContext';
-import { Button } from '../../components/ui/Button';
 import { GlassCard } from '../../components/ui/GlassCard';
 
 interface Conversation {
@@ -43,7 +42,7 @@ interface Message {
 const API_URL = 'http://localhost:8000';
 
 export const ChatPage: React.FC = () => {
-    const { token, user } = useAuth();
+    const { token } = useAuth();
 
     // State
     const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -254,7 +253,7 @@ export const ChatPage: React.FC = () => {
         // Set local optimistic message
         const tempUserMsg: Message = {
             id: Date.now(),
-            conversation_id: currentConvId,
+            conversation_id: currentConvId || '',
             role: 'user',
             content: content,
             created_at: new Date().toISOString()
@@ -494,15 +493,15 @@ export const ChatPage: React.FC = () => {
                                                         <ReactMarkdown
                                                             remarkPlugins={[remarkGfm]}
                                                             components={{
-                                                                code({ node, inline, className, children, ...props }) {
+                                                                code({ className, children, ref, ...props }) {
                                                                     const match = /language-(\w+)/.exec(className || '');
-                                                                    return !inline && match ? (
+                                                                    return match ? (
                                                                         <SyntaxHighlighter
-                                                                            style={oneDark}
+                                                                            style={oneDark as any}
                                                                             language={match[1]}
                                                                             PreTag="div"
                                                                             className="rounded-lg my-2 text-xs border border-slate-200/10"
-                                                                            {...props}
+                                                                            {...props as any}
                                                                         >
                                                                             {String(children).replace(/\n$/, '')}
                                                                         </SyntaxHighlighter>
@@ -558,15 +557,15 @@ export const ChatPage: React.FC = () => {
                                                 <ReactMarkdown
                                                     remarkPlugins={[remarkGfm]}
                                                     components={{
-                                                        code({ node, inline, className, children, ...props }) {
+                                                        code({ className, children, ...props }) {
                                                             const match = /language-(\w+)/.exec(className || '');
-                                                            return !inline && match ? (
+                                                            return match ? (
                                                                 <SyntaxHighlighter
-                                                                    style={oneDark}
+                                                                    style={oneDark as any}
                                                                     language={match[1]}
                                                                     PreTag="div"
                                                                     className="rounded-lg my-2 text-xs border border-slate-200/10"
-                                                                    {...props}
+                                                                    {...props as any}
                                                                 >
                                                                     {String(children).replace(/\n$/, '')}
                                                                 </SyntaxHighlighter>

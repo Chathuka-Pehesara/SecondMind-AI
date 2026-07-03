@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Brain, Tag, Calendar, Plus, ChevronDown, ChevronUp,
+  Search, Brain, Calendar, Plus, ChevronDown, ChevronUp,
   Trash2, Edit, Sliders, Target, Briefcase, FileText, X, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';

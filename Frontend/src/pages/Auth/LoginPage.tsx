@@ -21,6 +21,12 @@ export const LoginPage: React.FC = () => {
         if (isAuthenticated) {
             navigate('/dashboard');
         }
+        document.documentElement.classList.add('scrollable');
+        document.body.classList.add('scrollable');
+        return () => {
+            document.documentElement.classList.remove('scrollable');
+            document.body.classList.remove('scrollable');
+        };
     }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -47,7 +53,7 @@ export const LoginPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-darkBg flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-50 dark:bg-darkBg flex items-center justify-center p-6 relative overflow-x-hidden">
             {/* Background glow animations */}
             <div className="glow-orb w-[500px] h-[500px] bg-brand-500/10 -top-20 -right-20 animate-float" />
             <div className="glow-orb w-[600px] h-[600px] bg-indigo-500/5 -bottom-40 -left-20 animate-float-delayed" />

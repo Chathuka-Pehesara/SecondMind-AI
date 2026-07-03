@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -16,6 +16,15 @@ import { GlassCard } from '../../components/ui/GlassCard';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.documentElement.classList.add('scrollable');
+    document.body.classList.add('scrollable');
+    return () => {
+      document.documentElement.classList.remove('scrollable');
+      document.body.classList.remove('scrollable');
+    };
+  }, []);
 
   // Container variants for staggered entrance
   const containerVariants = {
@@ -42,7 +51,7 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-darkBg text-slate-800 dark:text-zinc-100 relative overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-darkBg text-slate-800 dark:text-zinc-100 relative overflow-x-hidden flex flex-col">
       {/* Background Orbs */}
       <div className="glow-orb w-[700px] h-[700px] bg-brand-500/10 -top-60 -right-40 animate-float" />
       <div className="glow-orb w-[800px] h-[800px] bg-indigo-500/5 -bottom-80 -left-40 animate-float-delayed" />
@@ -139,7 +148,7 @@ export const LandingPage: React.FC = () => {
           initial={{ opacity: 0, y: 50, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.5, duration: 0.6, type: 'spring' as const }}
-          className="w-full max-w-5xl mt-20 relative rounded-2xl border border-slate-200/50 dark:border-white/10 p-2 bg-slate-200/30 dark:bg-zinc-950/20 shadow-2xl dark:shadow-brand-500/5"
+          className="w-full max-w-5xl mt-20 relative rounded-2xl border border-slate-200/50 dark:border-white/10 p-2 bg-slate-200/30 dark:bg-zinc-950/20 shadow-2xl dark:shadow-brand-500/5 pointer-events-none"
         >
           <div className="rounded-xl overflow-hidden glass-effect border border-slate-200/40 dark:border-white/5 relative aspect-video flex flex-col">
             {/* Top Bar Mock */}

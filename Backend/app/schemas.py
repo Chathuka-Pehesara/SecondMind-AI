@@ -76,7 +76,7 @@ class GoalBase(BaseModel):
     status: str = "active" # active, completed, archived
     target_date: Optional[datetime] = None
 
-class GoalCreat(GoalBase):
+class GoalCreate(GoalBase):
     pass
 
 class GoalResponse(GoalBase):
@@ -85,7 +85,7 @@ class GoalResponse(GoalBase):
     updated_at: datetime
     created_at: datetime
     
-    class config:
+    class Config:
         from_attributes = True
 
 class GoalUpdate(GoalBase):
@@ -113,7 +113,7 @@ class ProjectResponse(ProjectBase):
     created_at: datetime
     updated_at: datetime
 
-    class config:
+    class Config:
         from_attributes = True
 
 class FactBase(BaseModel):
@@ -131,10 +131,10 @@ class FactResponse(FactBase):
     created_at:  datetime
     updated_at: datetime
 
-    class config:
+    class Config:
         from_attributes = True
 
-class MemorySummaryResponce(BaseModel):
+class MemorySummaryResponse(BaseModel):
     preferences: List[UserPreferenceResponse]
     goals: List[GoalResponse]
     projects: List[ProjectResponse]
