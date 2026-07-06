@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic import BaseModel,EmailStr, Field
 from datetime import datetime
 from typing import List, Optional
@@ -46,10 +47,25 @@ class MessageBase(BaseModel):
 class MessageCreate(BaseModel):
     content: str
 
-class MessageResponse(MessageBase):
+class MessageResponse(BaseModel):
     id: str
     conversation_id: str
+    role: str
+    content: str
     created_at: datetime
+    citations: Optional[str] = None
+    confidence_score: float | None = None
+
+    @field_validator('citations', mode='before')
+    @classmethod
+    def parse_citation(cls,v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v] if v else []
+        
+        return v or []
 
     class Config:
         from_attributes = True 
@@ -139,3 +155,15 @@ class MemorySummaryResponse(BaseModel):
     goals: List[GoalResponse]
     projects: List[ProjectResponse]
     facts: List[FactResponse]
+
+class DocumentBase(BaseModel):
+    filename: str
+    file_size: int
+
+class DocumentResponse(DocumentBase):
+    id: str
+    conversation_id: str
+    created_at: datetime
+
+    class config:
+        from_attributes = True
