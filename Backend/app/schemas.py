@@ -53,7 +53,7 @@ class MessageResponse(BaseModel):
     role: str
     content: str
     created_at: datetime
-    citations: Optional[str] = None
+    citations: Optional[list] = None
     confidence_score: float | None = None
 
     @field_validator('citations', mode='before')
@@ -161,7 +161,7 @@ class DocumentBase(BaseModel):
     file_size: int
 
 class DocumentResponse(DocumentBase):
-    id: str
+    id: int
     conversation_id: str
     created_at: datetime
 

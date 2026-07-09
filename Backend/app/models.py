@@ -6,7 +6,7 @@ from sqlalchemy import ReleaseSavepointClause
 from jwt import __description__
 import datetime
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -38,7 +38,7 @@ class Conversation(Base):
     # Relationships
     user = relationship("User", back_populates="conversations")
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
-    document = relationship("Document", back_populate="conversation", cascade="all, delete-orphan")
+    document = relationship("Document", back_populates="conversation", cascade="all, delete-orphan")
 
 class Message(Base):
     __tablename__ = "messages"
@@ -108,9 +108,9 @@ class Document(Base):
     __tablename__ = "documents"
 
     id = Column(Integer, primary_key=True,index=True)
-    conversation_id = Column(String, ForeignKey("conversation.id", ondelete="CASCADE"), nullable=False)
+    conversation_id = Column(String, ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
     filename = Column(String, nullable=False)
     file_size = Column(Integer, nullable=False)
-    created_at = Column(Datetime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     conversation = relationship("Conversation", back_populates="document")

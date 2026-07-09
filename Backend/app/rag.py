@@ -5,7 +5,7 @@ import datetime
 import uuid
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from sqlalchemy import Session
+from sqlalchemy.orm import Session
 import google.generativeai as genai
 import chromadb
 
@@ -75,7 +75,7 @@ def get_embeddings_batch(texts: List[str]) -> List[List[float]]:
         raise ValueError("GEMINI_API_KEY environment variable is not configured")
 
     response = genai.embed_content(
-        model="models/embedding-004",
+        model="models/gemini-embedding-2",
         content=texts,
         task_type="retrieval_document"
     )
@@ -88,7 +88,7 @@ def get_query_embedding(query: str) -> List[float]:
         raise ValueError("GEMINI_API_KEY environment variable is not configured")
 
     response = genai.embed_content(
-        model="models/embedding-004",
+        model="models/gemini-embedding-2",
         content=query,
         task_type="retrieval_query"
     )
@@ -105,7 +105,7 @@ def retrieve_rag_context(conversation_id: str, query: str, top_k: int = 4):
             where={"conversation_id": conversation_id }
         )
 
-        if not results or not results['documents'] or not results['document'][0]:
+        if not results or not results.get('documents') or not results['documents'][0]:
             return [],0.0
 
         chunks = results['documents'][0]

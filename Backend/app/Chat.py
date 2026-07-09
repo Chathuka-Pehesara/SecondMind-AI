@@ -34,7 +34,7 @@ def get_gemini_model(system_instruction: str = None):
             detail = "Gemini API key is not configured on the server"
         )
 
-    return genai.GenerativeModel("gemini-1.5-flash", system_instruction=system_instruction)
+    return genai.GenerativeModel("gemini-2.0-flash-lite", system_instruction=system_instruction)
 
 async def generate_gemini_stream (conversation_id: str, prompt_content: str, user_id: int): # [MODIFIED ARGUMENTS]
 
@@ -91,7 +91,7 @@ async def generate_gemini_stream (conversation_id: str, prompt_content: str, use
             })
         
         # Inject memory context as system instructions
-        model = get_gemini_model(system_instruction=memory_context if memory_context else None)
+        model = get_gemini_model(system_instruction=system_instruction if system_instruction else None)
         loop = asyncio.get_event_loop()
 
         def stream_call():

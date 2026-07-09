@@ -94,6 +94,7 @@ lerna-debug.log*
 *.sqlite3
 secondmind.db
 db.sqlite3-journal
+chroma_db/
 
 # --- IDEs / Editors ---
 .vscode/*
