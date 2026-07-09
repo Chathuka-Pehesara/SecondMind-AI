@@ -15,6 +15,7 @@ from app.database import get_db, sessionLocal
 from app.models import User, Conversation, Message
 from app.schemas import ConversationResponse, MessageResponse, MessageCreate
 from app.auth import get_current_user
+from app.models import Document
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -43,6 +44,41 @@ async def generate_gemini_stream (conversation_id: str, prompt_content: str, use
         from app.memory import get_user_memory_context
         memory_context = get_user_memory_context(db, user_id)
 
+        docs = db.query(Document).filter(Document.conversation_id == conversation_id).all()
+        
+        citations = []
+        confidence_score = 0.0
+        system_instruction = memory_context if memory_context else ""
+        
+        # If RAG files are found, perform similarity search
+        if docs:
+            from app.rag import retrieve_rag_context
+            retrieved_chunks, conf_score = retrieve_rag_context(conversation_id, prompt_content)
+            confidence_score = conf_score
+            
+            if retrieved_chunks:
+                # Compile unique document citations
+                citations = list(set([chunk["filename"] for chunk in retrieved_chunks]))
+                
+                # Format document contexts
+                context_str = "\n\n".join([
+                    f"--- Source: {chunk['filename']} ---\n{chunk['text']}"
+                    for chunk in retrieved_chunks
+                ])
+                
+                rag_instruction = (
+                    "You are a helpful AI assistant backed by a Retrieval-Augmented Generation (RAG) system.\n"
+                    "Your primary instruction is to answer the user query based ONLY on the provided context source blocks.\n"
+                    "If the context does not contain relevant details to address the query, state: 'I cannot find the answer in the provided documents.'\n"
+                    "Always mention citations when referring to specific files (e.g. [filename.pdf]).\n\n"
+                    f"Document Context:\n{context_str}"
+                )
+                
+                if system_instruction:
+                    system_instruction = f"{system_instruction}\n\n{rag_instruction}"
+                else:
+                    system_instruction = rag_instruction
+        
         db_messages = db.query(Message).filter(Message.conversation_id == conversation_id).order_by(Message.created_at.asc()).all()
 
         # Format history for Gemini API

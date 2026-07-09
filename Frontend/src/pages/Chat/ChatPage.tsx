@@ -14,7 +14,10 @@ import {
     Loader2,
     Menu,
     X,
-    ArrowRight
+    ArrowRight,
+    Paperclip,
+    FileText,
+    FileCode
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -32,11 +35,13 @@ interface Conversation {
 }
 
 interface Message {
-    id: number;
+    id: number | string;
     conversation_id: string;
     role: 'user' | 'model';
     content: string;
     created_at: string;
+    citations?: string[];
+    confidence_score?: number;
 }
 
 const API_URL = 'http://localhost:8000';
@@ -50,6 +55,9 @@ export const ChatPage: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputValue, setInputValue] = useState('');
 
+    const [documents, setDocuments] = useState<any[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
+
     const [isStreaming, setIsStreaming] = useState(false);
     const [streamedText, setStreamedText] = useState('');
     const [copiedId, setCopiedId] = useState<number | string | null>(null);
@@ -62,6 +70,7 @@ export const ChatPage: React.FC = () => {
     const messageEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Quick action suggestions
     const suggestions = [
@@ -106,6 +115,21 @@ export const ChatPage: React.FC = () => {
         }
     };
 
+    // Fetch documents list for selected chat
+    const fetchDocuments = async (convId: string) => {
+        try {
+            const res = await fetch(`${API_URL}/chat/conversations/${convId}/documents`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setDocuments(data);
+            }
+        } catch (err) {
+            console.error("Failed to load documents:", err);
+        }
+    };
+
     // Load chats on load
     useEffect(() => {
         if (token) {
@@ -117,8 +141,10 @@ export const ChatPage: React.FC = () => {
     useEffect(() => {
         if (activeConvId && token) {
             fetchMessageHistory(activeConvId);
+            fetchDocuments(activeConvId);
         } else {
             setMessages([]);
+            setDocuments([]);
         }
     }, [activeConvId, token]);
 
@@ -174,6 +200,23 @@ export const ChatPage: React.FC = () => {
             console.error("Failed to delete conversation:", err);
         }
     };
+
+    // Delete uploaded document
+    const handleDeleteDocument = async (docId: string) => {
+        if (!activeConvId) return;
+        try {
+            const res = await fetch(`${API_URL}/chat/conversations/${activeConvId}/documents/${docId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                setDocuments(prev => prev.filter(d => d.id !== docId));
+            }
+        } catch (err) {
+            console.error("Failed to delete document:", err);
+        }
+    };
+
 
     // Handle stream reader from backend response body
     const processStreamReader = async (response: Response) => {
@@ -281,6 +324,55 @@ export const ChatPage: React.FC = () => {
         } catch (err) {
             console.error(err);
             setIsStreaming(false);
+        }
+    };
+
+    // File Upload Handler
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        // Auto create conversation if uploading in empty state
+        let currentConvId = activeConvId;
+        if (!currentConvId) {
+            try {
+                const res = await fetch(`${API_URL}/chat/conversations`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setConversations(prev => [data, ...prev]);
+                    currentConvId = data.id;
+                    setActiveConvId(data.id);
+                } else {
+                    return;
+                }
+            } catch (err) {
+                console.error("Auto chat creation failed for upload:", err);
+                return;
+            }
+        }
+        if (!currentConvId) return;
+        const formData = new FormData();
+        formData.append("file", file);
+        setIsUploading(true);
+        try {
+            const res = await fetch(`${API_URL}/chat/conversations/${currentConvId}/documents`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+            if (res.ok) {
+                fetchDocuments(currentConvId);
+            } else {
+                const err = await res.json();
+                alert(`Upload failed: ${err.detail || 'Unknown error'}`);
+            }
+        } catch (err) {
+            console.error("Upload server connection error:", err);
+        } finally {
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
@@ -489,8 +581,9 @@ export const ChatPage: React.FC = () => {
                                                 {isUser ? (
                                                     <div className="whitespace-pre-wrap leading-relaxed font-sans">{msg.content}</div>
                                                 ) : (
-                                                    <div className="markdown-body">
-                                                        <ReactMarkdown
+                                                    <>
+                                                        <div className="markdown-body">
+                                                            <ReactMarkdown
                                                             remarkPlugins={[remarkGfm]}
                                                             components={{
                                                                 code({ className, children, ref, ...props }) {
@@ -517,144 +610,218 @@ export const ChatPage: React.FC = () => {
                                                             {msg.content}
                                                         </ReactMarkdown>
                                                     </div>
+                                                    {(msg.citations && msg.citations.length > 0 || msg.confidence_score !== undefined) && (
+                                                    <div className="mt-3 pt-2.5 border-t border-slate-200/40 dark:border-white/5 flex flex-wrap items-center justify-between gap-2 text-[10px]">
+                                                        {msg.citations && msg.citations.length > 0 && (
+                                                            <div className="flex items-center gap-1.5 text-slate-400 dark:text-zinc-500 font-medium">
+                                                                <span className="font-sans">Sources:</span>
+                                                                {msg.citations.map((cite, idx) => (
+                                                                    <span key={idx} className="bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-brand-500 dark:text-brand-400 font-mono">
+                                                                        {cite}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {msg.confidence_score !== undefined && msg.confidence_score !== null && msg.confidence_score > 0 && (
+                                                            <div className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-450 bg-emerald-500/10 dark:bg-emerald-500/5 px-2 py-0.5 rounded-full">
+                                                                <span>{(msg.confidence_score * 100).toFixed(0)}% Confidence</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </>
+                                                    
                                                 )}
 
-                                                {/* Hover Utility toolbar */}
-                                                <div className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 p-1 rounded-lg bg-slate-100/80 dark:bg-zinc-900/80 backdrop-blur border border-slate-200/40 dark:border-white/5`}>
-                                                    <button
-                                                        onClick={() => handleCopyText(msg.content, msg.id)}
-                                                        className="p-1 hover:bg-slate-200/60 dark:hover:bg-zinc-800 rounded text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors"
-                                                        title="Copy Response"
-                                                    >
-                                                        {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
-                                                    </button>
-                                                </div>
+                                            {/* Hover Utility toolbar */}
+                                            <div className={`absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 p-1 rounded-lg bg-slate-100/80 dark:bg-zinc-900/80 backdrop-blur border border-slate-200/40 dark:border-white/5`}>
+                                                <button
+                                                    onClick={() => handleCopyText(msg.content, msg.id)}
+                                                    className="p-1 hover:bg-slate-200/60 dark:hover:bg-zinc-800 rounded text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors"
+                                                    title="Copy Response"
+                                                >
+                                                    {copiedId === msg.id ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                                </button>
                                             </div>
+                                        </div>
 
-                                            {/* Right Avatar for User */}
-                                            {isUser && (
-                                                <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-slate-200/60 dark:bg-zinc-800 flex items-center justify-center font-display font-semibold text-slate-700 dark:text-zinc-300 border border-slate-300/20 dark:border-zinc-700/30">
-                                                    <User className="w-4 h-4" />
-                                                </div>
-                                            )}
+                                            {/* Right Avatar for User */ }
+                                    {
+                                        isUser && (
+                                            <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-slate-200/60 dark:bg-zinc-800 flex items-center justify-center font-display font-semibold text-slate-700 dark:text-zinc-300 border border-slate-300/20 dark:border-zinc-700/30">
+                                                <User className="w-4 h-4" />
+                                            </div>
+                                        )
+                                    }
                                         </motion.div>
-                                    );
+                        );
                                 })}
 
-                                {/* Simulated Stream Block (optimistic update) */}
-                                {isStreaming && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="flex gap-4 justify-start"
-                                    >
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
-                                            <Brain className="w-4.5 h-4.5 animate-pulse" />
-                                        </div>
+                        {/* Simulated Stream Block (optimistic update) */}
+                        {isStreaming && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex gap-4 justify-start"
+                            >
+                                <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-500">
+                                    <Brain className="w-4.5 h-4.5 animate-pulse" />
+                                </div>
 
-                                        <div className="relative max-w-[85%] rounded-2xl px-4 py-3 text-xs md:text-sm bg-white/40 dark:bg-zinc-900/40 border border-slate-200/40 dark:border-white/5 shadow-sm text-slate-800 dark:text-zinc-200">
-                                            {streamedText ? (
-                                                <ReactMarkdown
-                                                    remarkPlugins={[remarkGfm]}
-                                                    components={{
-                                                        code({ className, children, ...props }) {
-                                                            const match = /language-(\w+)/.exec(className || '');
-                                                            return match ? (
-                                                                <SyntaxHighlighter
-                                                                    style={oneDark as any}
-                                                                    language={match[1]}
-                                                                    PreTag="div"
-                                                                    className="rounded-lg my-2 text-xs border border-slate-200/10"
-                                                                    {...props as any}
-                                                                >
-                                                                    {String(children).replace(/\n$/, '')}
-                                                                </SyntaxHighlighter>
-                                                            ) : (
-                                                                <code className="bg-slate-100 dark:bg-zinc-800/80 px-1.5 py-0.5 rounded text-xs text-brand-500 dark:text-brand-400 font-mono" {...props}>
-                                                                    {children}
-                                                                </code>
-                                                            );
-                                                        }
-                                                    }}
-                                                    className="prose dark:prose-invert max-w-none text-xs md:text-sm leading-relaxed"
-                                                >
-                                                    {streamedText}
-                                                </ReactMarkdown>
-                                            ) : (
-                                                <div className="flex items-center gap-2 py-1 text-slate-400 dark:text-zinc-500">
-                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-500" />
-                                                    <span>Gemini is thinking...</span>
-                                                </div>
-                                            )}
-
-                                            {/* Blinking cursor at the end of streaming text */}
-                                            {streamedText && (
-                                                <span className="inline-block w-1.5 h-3.5 ml-1 bg-brand-500 animate-pulse rounded-sm" />
-                                            )}
+                                <div className="relative max-w-[85%] rounded-2xl px-4 py-3 text-xs md:text-sm bg-white/40 dark:bg-zinc-900/40 border border-slate-200/40 dark:border-white/5 shadow-sm text-slate-800 dark:text-zinc-200">
+                                    {streamedText ? (
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            components={{
+                                                code({ className, children, ...props }) {
+                                                    const match = /language-(\w+)/.exec(className || '');
+                                                    return match ? (
+                                                        <SyntaxHighlighter
+                                                            style={oneDark as any}
+                                                            language={match[1]}
+                                                            PreTag="div"
+                                                            className="rounded-lg my-2 text-xs border border-slate-200/10"
+                                                            {...props as any}
+                                                        >
+                                                            {String(children).replace(/\n$/, '')}
+                                                        </SyntaxHighlighter>
+                                                    ) : (
+                                                        <code className="bg-slate-100 dark:bg-zinc-800/80 px-1.5 py-0.5 rounded text-xs text-brand-500 dark:text-brand-400 font-mono" {...props}>
+                                                            {children}
+                                                        </code>
+                                                    );
+                                                }
+                                            }}
+                                            className="prose dark:prose-invert max-w-none text-xs md:text-sm leading-relaxed"
+                                        >
+                                            {streamedText}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        <div className="flex items-center gap-2 py-1 text-slate-400 dark:text-zinc-500">
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-500" />
+                                            <span>Gemini is thinking...</span>
                                         </div>
-                                    </motion.div>
-                                )}
-                            </div>
+                                    )}
+
+                                    {/* Blinking cursor at the end of streaming text */}
+                                    {streamedText && (
+                                        <span className="inline-block w-1.5 h-3.5 ml-1 bg-brand-500 animate-pulse rounded-sm" />
+                                    )}
+                                </div>
+                            </motion.div>
                         )}
-                    </AnimatePresence>
-                    <div ref={messageEndRef} />
                 </div>
+                        )}
+            </AnimatePresence>
+            <div ref={messageEndRef} />
+        </div>
 
-                {/* 3. Input Text Bar Form */}
-                <div className="p-4 border-t border-slate-200/50 dark:border-white/5 bg-slate-50/20 dark:bg-zinc-950/20">
-                    <div className="max-w-3xl mx-auto relative">
+                {/* 3. Input Text Bar Form */ }
+    <div className="p-4 border-t border-slate-200/50 dark:border-white/5 bg-slate-50/20 dark:bg-zinc-950/20">
+        <div className="max-w-3xl mx-auto relative">
 
-                        {/* Input Wrapper Card */}
-                        <div className="flex items-end gap-2 p-2 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-white/5 focus-within:border-brand-500/50 dark:focus-within:border-brand-400/50 shadow-sm transition-all relative">
-                            <textarea
-                                ref={textareaRef}
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                placeholder={activeConvId ? "Message Gemini..." : "Start a new chat..."}
-                                rows={1}
-                                disabled={isStreaming}
-                                className="flex-1 bg-transparent border-0 outline-none text-xs md:text-sm text-slate-800 dark:text-zinc-100 resize-none py-2 px-3 focus:outline-none min-h-[38px] max-h-[180px] leading-relaxed disabled:opacity-50"
-                            />
-
-                            {/* Actions side pane inside textbox */}
-                            <div className="flex items-center gap-1.5 pb-1 pr-1">
-                                {/* Regeneration trigger (only if chat has model messages) */}
-                                {activeConvId && messages.length > 0 && messages.some(m => m.role === 'model') && (
-                                    <button
-                                        onClick={handleRegenerate}
-                                        disabled={isStreaming}
-                                        className="p-2 rounded-xl text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-zinc-800/60 transition-colors disabled:opacity-30 cursor-pointer"
-                                        title="Regenerate Last Response"
-                                    >
-                                        <RotateCcw className="w-4 h-4" />
-                                    </button>
+            {/* DOCUMENTS DRAWER (LIST OF FILES) */}
+            {(documents.length > 0 || isUploading) && (
+                <div className="flex flex-wrap gap-2 px-3 py-2 border border-slate-200/60 dark:border-white/5 border-b-0 bg-slate-50/50 dark:bg-zinc-900/50 rounded-t-2xl">
+                    {documents.map((doc) => {
+                        const isCode = doc.filename.match(/\.(js|ts|tsx|jsx|py|java|c|cpp|cs|go|rs|html|css|json|sh|yaml|yml|md)$/i);
+                        return (
+                            <div key={doc.id} className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-zinc-800 border border-slate-200/60 dark:border-white/5 rounded-lg text-[10px] text-slate-650 dark:text-zinc-300">
+                                {isCode ? (
+                                    <FileCode className="w-3.5 h-3.5 text-brand-500" />
+                                ) : (
+                                    <FileText className="w-3.5 h-3.5 text-brand-500" />
                                 )}
-
-                                {/* Submit button */}
+                                <span className="truncate max-w-[130px]" title={doc.filename}>{doc.filename}</span>
                                 <button
-                                    onClick={() => handleSendMessage()}
-                                    disabled={!inputValue.trim() || isStreaming}
-                                    className="p-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 disabled:bg-slate-200 dark:disabled:bg-zinc-800/80 disabled:text-slate-400 dark:disabled:text-zinc-600 shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 transition-all cursor-pointer"
-                                    title="Send Message"
+                                    onClick={() => handleDeleteDocument(doc.id)}
+                                    className="text-slate-400 hover:text-red-500 cursor-pointer p-0.5 rounded"
+                                    title="Delete Document"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <X className="w-3 h-3" />
                                 </button>
                             </div>
+                        );
+                    })}
+                    {isUploading && (
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-brand-500/10 rounded-lg text-[10px] text-brand-500 font-medium">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>Uploading...</span>
                         </div>
-
-                        {/* Sub-label Model metadata indicator */}
-                        <div className="flex items-center justify-between px-3 mt-1.5 text-[9px] text-slate-400 dark:text-zinc-500">
-                            <div className="flex items-center gap-1.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                <span>Gemini 1.5 Flash API</span>
-                            </div>
-                            <span>Press Enter to send, Shift+Enter for new line</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
+            )}
 
-            </main>
+            {/* Input Wrapper Card */}
+            <div className={`flex items-end gap-2 p-2 bg-white dark:bg-zinc-900 border border-slate-200/60 dark:border-white/5 focus-within:border-brand-500/50 dark:focus-within:border-brand-400/50 shadow-sm transition-all relative ${
+                (documents.length > 0 || isUploading) ? 'rounded-b-2xl border-t-0' : 'rounded-2xl'
+            }`}>
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".pdf,.docx,.txt"
+                    className="hidden"
+                />
+
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isStreaming || isUploading}
+                    className="p-2 rounded-xl text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-zinc-800/60 transition-colors disabled:opacity-30 cursor-pointer pb-2"
+                    title="Upload Document (.pdf, .docx, .txt)"
+                >
+                    <Paperclip className="w-4 h-4" />
+                </button>
+
+                <textarea
+                    ref={textareaRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={activeConvId ? "Message Gemini..." : "Start a new chat..."}
+                    rows={1}
+                    disabled={isStreaming}
+                    className="flex-1 bg-transparent border-0 outline-none text-xs md:text-sm text-slate-800 dark:text-zinc-100 resize-none py-2 px-3 focus:outline-none min-h-[38px] max-h-[180px] leading-relaxed disabled:opacity-50"
+                />
+
+                {/* Actions side pane inside textbox */}
+                <div className="flex items-center gap-1.5 pb-1 pr-1">
+                    {/* Regeneration trigger (only if chat has model messages) */}
+                    {activeConvId && messages.length > 0 && messages.some(m => m.role === 'model') && (
+                        <button
+                            onClick={handleRegenerate}
+                            disabled={isStreaming}
+                            className="p-2 rounded-xl text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 hover:bg-slate-100 dark:hover:bg-zinc-800/60 transition-colors disabled:opacity-30 cursor-pointer"
+                            title="Regenerate Last Response"
+                        >
+                            <RotateCcw className="w-4 h-4" />
+                        </button>
+                    )}
+
+                    {/* Submit button */}
+                    <button
+                        onClick={() => handleSendMessage()}
+                        disabled={!inputValue.trim() || isStreaming}
+                        className="p-2 rounded-xl bg-brand-500 text-white hover:bg-brand-600 disabled:bg-slate-200 dark:disabled:bg-zinc-800/80 disabled:text-slate-400 dark:disabled:text-zinc-600 shadow-md shadow-brand-500/10 hover:shadow-brand-500/20 transition-all cursor-pointer"
+                        title="Send Message"
+                    >
+                        <Send className="w-4 h-4" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Sub-label Model metadata indicator */}
+            <div className="flex items-center justify-between px-3 mt-1.5 text-[9px] text-slate-400 dark:text-zinc-500">
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>Gemini 1.5 Flash API</span>
+                </div>
+                <span>Press Enter to send, Shift+Enter for new line</span>
+            </div>
         </div>
+    </div>
+
+            </main >
+        </div >
     );
 };
