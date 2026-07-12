@@ -167,3 +167,38 @@ class DocumentResponse(DocumentBase):
 
     class config:
         from_attributes = True
+
+class NoteBase(BaseModel):
+    title: str = Field(..., min_length=1)
+    content: str = ""
+    folder: str = "General"
+
+class NoteCreate(NoteBase):
+    pass
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    folder: Optional[str] = None
+
+class NoteResponse(NoteBase):
+    id: int
+    user_id: int
+    summary: Optional[str] = None
+    tags: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    @field_validator('tags', mode='before')
+    @classmethod
+    def parse_tags(cls, v):
+        import json
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v] if v else []
+        return v or []
+
+    class Config:
+        from_attributes = True

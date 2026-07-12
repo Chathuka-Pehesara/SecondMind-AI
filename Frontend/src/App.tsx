@@ -11,6 +11,7 @@ import { RegisterPage } from './pages/Auth/RegisterPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ChatPage } from './pages/Chat/ChatPage';
+import { NotesPage } from './pages/Dashboard/NotesPage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route element={<DashboardLayout />}>
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="dashboard/chat" element={<ChatPage />} />
+                <Route path="dashboard/notes" element={<NotesPage />} />
                 <Route path="dashboard/memories" element={<MemoriesPage />} />
                 <Route path="dashboard/connections" element={<ConnectionsPage />} />
                 <Route path="settings" element={<SettingsPage />} />

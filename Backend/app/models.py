@@ -25,6 +25,7 @@ class User(Base):
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     facts = relationship("Fact", back_populates="user", cascade="all, delete-orphan")
+    notes = relationship("Note", back_populates="user", cascade="all, delete-orphan")
     
 class Conversation(Base):
     __tablename__ = "conversations"
@@ -114,3 +115,18 @@ class Document(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     conversation = relationship("Conversation", back_populates="document")
+
+class Note(Base):
+    __tablename__ = "notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False, default="Untitled Note")
+    content = Column(String, nullable=False, default="")
+    summary = Column(String, nullable=True)
+    tags = Column(String, nullable=True) # JSON array as string
+    folder = Column(String, nullable=False, default="General")
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="notes")
