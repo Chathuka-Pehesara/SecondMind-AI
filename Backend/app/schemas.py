@@ -114,6 +114,7 @@ class ProjectBase(BaseModel):
     name: str = Field()
     description: Optional[str] = None
     status: str = "active"  # planning, active, completed, on_hold
+    deadline: Optional[datetime] = None
 
 class ProjectCreate(ProjectBase):
     pass
@@ -122,10 +123,39 @@ class ProjectUpdate(ProjectBase):
     name: Optional[str] = None
     description: Optional[str] = None
     status: Optional[str] = None
+    deadline: Optional[datetime] = None
 
 class ProjectResponse(ProjectBase):
     id: int
     user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class TaskBase(BaseModel):
+    title: str = Field(..., min_length=1)
+    description: Optional[str] = None
+    status: str = "pending" # pending, in_progress, completed
+    priority: str = "medium" # low, medium, high
+    deadline: Optional[datetime] = None
+    milestone: Optional[str] = None
+
+class TaskCreate(TaskBase):
+    pass
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    deadline: Optional[datetime] = None
+    milestone: Optional[str] = None
+
+class TaskResponse(TaskBase):
+    id: int
+    project_id: int
     created_at: datetime
     updated_at: datetime
 

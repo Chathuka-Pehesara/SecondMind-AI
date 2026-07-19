@@ -12,6 +12,9 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ChatPage } from './pages/Chat/ChatPage';
 import { NotesPage } from './pages/Dashboard/NotesPage';
+import { ProjectsPage } from './pages/Dashboard/ProjectsPage';
+import { ProjectDetailsPage } from './pages/Dashboard/ProjectDetailsPage';
+
 
 function App() {
   return (
@@ -34,6 +37,8 @@ function App() {
                 <Route path="dashboard/notes" element={<NotesPage />} />
                 <Route path="dashboard/memories" element={<MemoriesPage />} />
                 <Route path="dashboard/connections" element={<ConnectionsPage />} />
+                <Route path="dashboard/projects" element={<ProjectsPage />} />
+                <Route path="dashboard/projects/:id" element={<ProjectDetailsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
             </Route>

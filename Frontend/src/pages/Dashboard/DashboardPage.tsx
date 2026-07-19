@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Button } from '../../components/ui/Button';
+import { ProjectWidget } from '../../components/projects/ProjectWidget';
+
 
 export const DashboardPage: React.FC = () => {
   // Container variants for layout staggering
@@ -200,9 +202,13 @@ export const DashboardPage: React.FC = () => {
               </div>
             </GlassCard>
           ))}
+          
+          {/* Include Project Widget here */}
+          <ProjectWidget />
         </motion.div>
       </div>
     </motion.div>
+
   );
 };
 

@@ -89,10 +89,28 @@ class Project(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     status = Column(String, nullable=False, default="active")
+    deadline = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="projects")
+    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=True)
+    status = Column(String, nullable=False, default="pending") # pending, in_progress, completed
+    priority = Column(String, nullable=False, default="medium") # low, medium, high
+    deadline = Column(DateTime, nullable=True)
+    milestone = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    project = relationship("Project", back_populates="tasks")
 
 class Fact(Base):
     __tablename__ = "facts"
