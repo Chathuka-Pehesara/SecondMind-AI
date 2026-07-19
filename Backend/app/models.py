@@ -24,6 +24,7 @@ class User(Base):
     preferences = relationship("UserPreference", back_populates="user", cascade="all, delete-orphan")
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
+    decisions = relationship("Decision", back_populates="user", cascade="all, delete-orphan")
     facts = relationship("Fact", back_populates="user", cascade="all, delete-orphan")
     notes = relationship("Note", back_populates="user", cascade="all, delete-orphan")
     
@@ -147,4 +148,22 @@ class Note(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
-    user = relationship("User", back_populates="notes")
+    user = relationship("User", back_populates="notes")
+
+class Decision(Base):
+    __tablename__ = "decisions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    query = Column(String, nullable=False)
+    pros = Column(String, nullable=True) # JSON array as string
+    cons = Column(String, nullable=True) # JSON array as string
+    risks = Column(String, nullable=True) # JSON array as string
+    benefits = Column(String, nullable=True) # JSON array as string
+    recommendation = Column(String, nullable=True)
+    confidence_score = Column(Float, nullable=True)
+    comparison_table = Column(String, nullable=True) # JSON array as string
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="decisions")
+

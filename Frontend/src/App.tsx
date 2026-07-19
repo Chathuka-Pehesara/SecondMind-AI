@@ -14,6 +14,8 @@ import { ChatPage } from './pages/Chat/ChatPage';
 import { NotesPage } from './pages/Dashboard/NotesPage';
 import { ProjectsPage } from './pages/Dashboard/ProjectsPage';
 import { ProjectDetailsPage } from './pages/Dashboard/ProjectDetailsPage';
+import { DecisionAssistantPage } from './pages/Dashboard/DecisionAssistantPage';
+
 
 
 function App() {
@@ -39,7 +41,9 @@ function App() {
                 <Route path="dashboard/connections" element={<ConnectionsPage />} />
                 <Route path="dashboard/projects" element={<ProjectsPage />} />
                 <Route path="dashboard/projects/:id" element={<ProjectDetailsPage />} />
+                <Route path="dashboard/decisions" element={<DecisionAssistantPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+
               </Route>
             </Route>
 

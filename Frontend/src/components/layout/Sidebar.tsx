@@ -11,8 +11,10 @@ import {
   Command,
   MessageSquare,
   StickyNote,
-  FolderKanban
+  FolderKanban,
+  Scale
 } from 'lucide-react';
+
 import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
@@ -30,8 +32,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'AI Decisions', path: '/dashboard/decisions', icon: Scale },
     { name: 'Projects', path: '/dashboard/projects', icon: FolderKanban },
     { name: 'AI Chat', path: '/dashboard/chat', icon: MessageSquare },
+
     { name: 'Smart Notes', path: '/dashboard/notes', icon: StickyNote },
     { name: 'Memory Vault', path: '/dashboard/memories', icon: Brain },
     { name: 'Connections', path: '/dashboard/connections', icon: Network },

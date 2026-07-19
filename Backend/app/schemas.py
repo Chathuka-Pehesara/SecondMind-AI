@@ -232,3 +232,35 @@ class NoteResponse(NoteBase):
 
     class Config:
         from_attributes = True
+
+class DecisionBase(BaseModel):
+    query: str = Field(..., min_length=1)
+
+class DecisionCreate(DecisionBase):
+    pass
+
+class DecisionResponse(DecisionBase):
+    id: int
+    user_id: int
+    pros: Optional[list] = None
+    cons: Optional[list] = None
+    risks: Optional[list] = None
+    benefits: Optional[list] = None
+    recommendation: Optional[str] = None
+    confidence_score: Optional[float] = None
+    comparison_table: Optional[list] = None
+    created_at: datetime
+
+    @field_validator('pros', 'cons', 'risks', 'benefits', 'comparison_table', mode='before')
+    @classmethod
+    def parse_json_fields(cls, v):
+        import json
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v] if v else []
+        return v or []
+
+    class Config:
+        from_attributes = True

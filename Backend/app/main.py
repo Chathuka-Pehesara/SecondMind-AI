@@ -11,6 +11,8 @@ from app.memory import router as memory_router # [NEW IMPORT]
 from app.rag import router as rag_router
 from app.notes import router as notes_router
 from app.projects import router as projects_router
+from app.decisions import router as decisions_router
+
 
 # create database tables
 Base.metadata.create_all(bind=engine)
@@ -29,6 +31,8 @@ app.include_router(memory_router) # [NEW ROUTER REGISTRATION]
 app.include_router(rag_router)
 app.include_router(notes_router)
 app.include_router(projects_router)
+app.include_router(decisions_router)
+
 
 @app.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
