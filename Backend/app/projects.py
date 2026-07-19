@@ -23,7 +23,7 @@ def get_gemini_model(system_instruction: str = None):
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = "Gemini API key is not configured on the server"
         )
-    return genai.GenerativeModel("gemini-2.0-flash-lite", system_instruction=system_instruction)
+    return genai.GenerativeModel("gemini-2.5-flash", system_instruction=system_instruction)
 
 
 # --- Projects CRUD ---

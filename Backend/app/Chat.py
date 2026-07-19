@@ -34,7 +34,7 @@ def get_gemini_model(system_instruction: str = None):
             detail = "Gemini API key is not configured on the server"
         )
 
-    return genai.GenerativeModel("gemini-2.0-flash-lite", system_instruction=system_instruction)
+    return genai.GenerativeModel("gemini-2.5-flash", system_instruction=system_instruction)
 
 async def generate_gemini_stream (conversation_id: str, prompt_content: str, user_id: int): # [MODIFIED ARGUMENTS]
 

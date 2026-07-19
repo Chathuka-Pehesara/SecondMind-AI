@@ -22,7 +22,7 @@ def get_gemini_model():
             status_code = status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail = "Gemini API key is not configured on the server"
         )
-    return genai.GenerativeModel("gemini-2.0-flash-lite")
+    return genai.GenerativeModel("gemini-2.5-flash")
 
 @router.post("/analyze", response_model=DecisionResponse, status_code=status.HTTP_201_CREATED)
 def analyze_decision(

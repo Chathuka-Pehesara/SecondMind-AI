@@ -12,8 +12,10 @@ import {
   MessageSquare,
   StickyNote,
   FolderKanban,
-  Scale
+  Scale,
+  GraduationCap
 } from 'lucide-react';
+
 
 import { useAuth } from '../../context/AuthContext';
 
@@ -32,7 +34,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Learning AI', path: '/dashboard/learning', icon: GraduationCap },
     { name: 'AI Decisions', path: '/dashboard/decisions', icon: Scale },
+
     { name: 'Projects', path: '/dashboard/projects', icon: FolderKanban },
     { name: 'AI Chat', path: '/dashboard/chat', icon: MessageSquare },
 

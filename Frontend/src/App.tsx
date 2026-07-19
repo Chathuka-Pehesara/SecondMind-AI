@@ -15,6 +15,9 @@ import { NotesPage } from './pages/Dashboard/NotesPage';
 import { ProjectsPage } from './pages/Dashboard/ProjectsPage';
 import { ProjectDetailsPage } from './pages/Dashboard/ProjectDetailsPage';
 import { DecisionAssistantPage } from './pages/Dashboard/DecisionAssistantPage';
+import { LearningAssistantPage } from './pages/Dashboard/LearningAssistantPage';
+import { StudyModulePage } from './pages/Dashboard/StudyModulePage';
+
 
 
 
@@ -42,7 +45,10 @@ function App() {
                 <Route path="dashboard/projects" element={<ProjectsPage />} />
                 <Route path="dashboard/projects/:id" element={<ProjectDetailsPage />} />
                 <Route path="dashboard/decisions" element={<DecisionAssistantPage />} />
+                <Route path="dashboard/learning" element={<LearningAssistantPage />} />
+                <Route path="dashboard/learning/:id" element={<StudyModulePage />} />
                 <Route path="settings" element={<SettingsPage />} />
+
 
               </Route>
             </Route>

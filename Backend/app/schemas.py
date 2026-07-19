@@ -264,3 +264,69 @@ class DecisionResponse(DecisionBase):
 
     class Config:
         from_attributes = True
+
+class FlashcardBase(BaseModel):
+    front: str = Field(..., min_length=1)
+    back: str = Field(..., min_length=1)
+
+class FlashcardCreate(FlashcardBase):
+    pass
+
+class FlashcardUpdate(BaseModel):
+    is_mastered: bool
+
+class FlashcardResponse(FlashcardBase):
+    id: int
+    material_id: int
+    is_mastered: bool
+
+    class Config:
+        from_attributes = True
+
+class QuizQuestionBase(BaseModel):
+    question: str = Field(..., min_length=1)
+    correct_answer: str = Field(..., min_length=1)
+
+class QuizQuestionCreate(QuizQuestionBase):
+    options_json: str # Store as string
+
+class QuizQuestionResponse(QuizQuestionBase):
+    id: int
+    material_id: int
+    options: list
+
+    @field_validator('options', mode='before')
+    @classmethod
+    def parse_options(cls, v, values):
+        # In case we pass the ORM object directly
+        return v or []
+    
+    class Config:
+        from_attributes = True
+
+class LearningMaterialBase(BaseModel):
+    filename: str
+
+class LearningMaterialResponse(LearningMaterialBase):
+    id: int
+    user_id: int
+    summary: Optional[str] = None
+    roadmap: Optional[list] = None
+    progress_score: float
+    created_at: datetime
+    flashcards: Optional[List[FlashcardResponse]] = []
+    quiz_questions: Optional[List[QuizQuestionResponse]] = []
+
+    @field_validator('roadmap', mode='before')
+    @classmethod
+    def parse_roadmap(cls, v):
+        import json
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return []
+        return v or []
+
+    class Config:
+        from_attributes = True

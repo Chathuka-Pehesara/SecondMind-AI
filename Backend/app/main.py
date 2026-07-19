@@ -12,6 +12,8 @@ from app.rag import router as rag_router
 from app.notes import router as notes_router
 from app.projects import router as projects_router
 from app.decisions import router as decisions_router
+from app.learning import router as learning_router
+
 
 
 # create database tables
@@ -32,6 +34,8 @@ app.include_router(rag_router)
 app.include_router(notes_router)
 app.include_router(projects_router)
 app.include_router(decisions_router)
+app.include_router(learning_router)
+
 
 
 @app.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)

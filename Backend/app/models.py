@@ -6,7 +6,7 @@ from sqlalchemy import ReleaseSavepointClause
 from jwt import __description__
 import datetime
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -25,6 +25,7 @@ class User(Base):
     goals = relationship("Goal", back_populates="user", cascade="all, delete-orphan")
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     decisions = relationship("Decision", back_populates="user", cascade="all, delete-orphan")
+    learning_materials = relationship("LearningMaterial", back_populates="user", cascade="all, delete-orphan")
     facts = relationship("Fact", back_populates="user", cascade="all, delete-orphan")
     notes = relationship("Note", back_populates="user", cascade="all, delete-orphan")
     
@@ -166,4 +167,43 @@ class Decision(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     user = relationship("User", back_populates="decisions")
+
+class LearningMaterial(Base):
+    __tablename__ = "learning_materials"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    filename = Column(String, nullable=False)
+    content_text = Column(String, nullable=False)
+    summary = Column(String, nullable=True)
+    roadmap = Column(String, nullable=True) # JSON array of topics
+    progress_score = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+    user = relationship("User", back_populates="learning_materials")
+    flashcards = relationship("Flashcard", back_populates="material", cascade="all, delete-orphan")
+    quiz_questions = relationship("QuizQuestion", back_populates="material", cascade="all, delete-orphan")
+
+class Flashcard(Base):
+    __tablename__ = "flashcards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    material_id = Column(Integer, ForeignKey("learning_materials.id", ondelete="CASCADE"), nullable=False)
+    front = Column(String, nullable=False)
+    back = Column(String, nullable=False)
+    is_mastered = Column(Boolean, default=False)
+    
+    material = relationship("LearningMaterial", back_populates="flashcards")
+
+class QuizQuestion(Base):
+    __tablename__ = "quiz_questions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    material_id = Column(Integer, ForeignKey("learning_materials.id", ondelete="CASCADE"), nullable=False)
+    question = Column(String, nullable=False)
+    options_json = Column(String, nullable=False) # JSON array of options
+    correct_answer = Column(String, nullable=False)
+
+    material = relationship("LearningMaterial", back_populates="quiz_questions")
+
 
