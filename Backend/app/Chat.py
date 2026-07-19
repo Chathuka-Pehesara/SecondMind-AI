@@ -16,6 +16,7 @@ from app.models import User, Conversation, Message
 from app.schemas import ConversationResponse, MessageResponse, MessageCreate
 from app.auth import get_current_user
 from app.models import Document
+from app.search import upsert_global_embedding, delete_global_embedding
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -120,6 +121,10 @@ async def generate_gemini_stream (conversation_id: str, prompt_content: str, use
             db.add(conversation)
 
         db.commit()
+        
+        all_msgs = db.query(Message).filter(Message.conversation_id == conversation_id).all()
+        full_text = " ".join([m.content for m in all_msgs])
+        upsert_global_embedding(conversation_id, "chat", user_id, conversation.title, full_text)
 
     except Exception as e:
         error_msg = f"Error during generation: {str(e)}"
@@ -142,6 +147,7 @@ def create_conversation(
     db.add(new_conversation)
     db.commit()
     db.refresh(new_conversation)
+    upsert_global_embedding(new_conversation.id, "chat", current_user.id, new_conversation.title, "")
     return new_conversation
 
 @router.get("/conversations", response_model=List[ConversationResponse])
@@ -170,6 +176,7 @@ def delete_conversation(
 
     db.delete(conversation)
     db.commit()
+    delete_global_embedding(conversation_id, "chat")
     return {"Message": "Conversation deleted successfully"}
 
 @router.get("/conversations/{conversation_id}/messages", response_model=List[MessageResponse])

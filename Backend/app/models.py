@@ -1,9 +1,3 @@
-from datetime import datetime_CAPI
-from sqlalchemy.engine import default
-from sqlalchemy import null
-from operator import index
-from sqlalchemy import ReleaseSavepointClause
-from jwt import __description__
 import datetime
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float, Boolean
@@ -75,7 +69,7 @@ class Goal(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     title = Column(String, nullable=False)
-    description = Column(String, nullable=False)
+    description = Column(String, nullable=True)
     status = Column(String, nullable=False, default="active")
     target_date = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

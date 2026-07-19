@@ -215,7 +215,7 @@ class NoteResponse(NoteBase):
     id: int
     user_id: int
     summary: Optional[str] = None
-    tags: Optional[str] = None
+    tags: Optional[list] = []
     created_at: datetime
     updated_at: datetime
 

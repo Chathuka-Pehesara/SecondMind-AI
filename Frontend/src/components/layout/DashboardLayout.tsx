@@ -3,9 +3,11 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './Sidebar';
 import { TopNav } from './TopNav';
+import { GlobalSearchModal } from '../search/GlobalSearchModal';
 
 export const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const location = useLocation();
 
   return (
@@ -20,7 +22,10 @@ export const DashboardLayout: React.FC = () => {
       {/* Main App Container */}
       <div className="flex-1 flex flex-col h-full min-w-0 relative z-10 overflow-hidden">
         {/* Top Header */}
-        <TopNav onOpenSidebar={() => setSidebarOpen(true)} />
+        <TopNav 
+          onOpenSidebar={() => setSidebarOpen(true)} 
+          onOpenSearch={() => setSearchOpen(true)}
+        />
 
         {/* Dynamic Animated Content Panel */}
         {(() => {
@@ -45,6 +50,12 @@ export const DashboardLayout: React.FC = () => {
           );
         })()}
       </div>
+
+      {/* Global Search Modal */}
+      <GlobalSearchModal 
+        isOpen={searchOpen} 
+        onClose={() => setSearchOpen(false)} 
+      />
     </div>
   );
 };

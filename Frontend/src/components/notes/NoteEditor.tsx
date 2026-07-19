@@ -42,7 +42,11 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
       setTitle(note.title);
       setContent(note.content);
       setFolder(note.folder);
-      fetchRelated(note.id);
+      if (note.id) {
+        fetchRelated(note.id);
+      } else {
+        setRelatedNotes([]);
+      }
     } else {
       setTitle('');
       setContent('');

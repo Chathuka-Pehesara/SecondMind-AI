@@ -13,6 +13,7 @@ from app.schemas import (
     FactCreate, FactResponse,
     MemorySummaryResponse
 )
+from app.search import upsert_global_embedding, delete_global_embedding
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 
@@ -143,13 +144,14 @@ def create_goal(goal_in: GoalCreate, current_user: User = Depends(get_current_us
     new_goal = Goal(
         user_id=current_user.id,
         title=goal_in.title,
-        description=goal_in.description,
+        description=goal_in.description or "",
         status=goal_in.status,
         target_date=goal_in.target_date
     )
     db.add(new_goal)
     db.commit()
     db.refresh(new_goal)
+    upsert_global_embedding(new_goal.id, "goal", current_user.id, new_goal.title, new_goal.description or "")
     return new_goal
 
 @router.put("/goals/{goal_id}", response_model=GoalResponse)
@@ -164,10 +166,13 @@ def update_goal(
         raise HTTPException(status_code=404, detail="Goal not found")
     
     for field, value in goal_up.dict(exclude_unset=True).items():
+        if field == "description" and value is None:
+            value = ""
         setattr(goal, field, value)
     goal.updated_at = datetime.datetime.utcnow()
     db.commit()
     db.refresh(goal)
+    upsert_global_embedding(goal.id, "goal", current_user.id, goal.title, goal.description or "")
     return goal
 
 @router.delete("/goals/{goal_id}")
@@ -177,6 +182,7 @@ def delete_goal(goal_id: int, current_user: User = Depends(get_current_user), db
         raise HTTPException(status_code=404, detail="Goal not found")
     db.delete(goal)
     db.commit()
+    delete_global_embedding(goal_id, "goal")
     return {"message": "Goal deleted successfully"}
 
 
@@ -242,6 +248,7 @@ def create_fact(fact_in: FactCreate, current_user: User = Depends(get_current_us
     db.add(new_fact)
     db.commit()
     db.refresh(new_fact)
+    upsert_global_embedding(new_fact.id, "fact", current_user.id, "Fact", new_fact.content)
     return new_fact
 
 @router.put("/facts/{fact_id}", response_model=FactResponse)
@@ -258,6 +265,7 @@ def update_fact(
     fact.updated_at = datetime.datetime.utcnow()
     db.commit()
     db.refresh(fact)
+    upsert_global_embedding(fact.id, "fact", current_user.id, "Fact", fact.content)
     return fact
 
 @router.delete("/facts/{fact_id}")
@@ -267,4 +275,5 @@ def delete_fact(fact_id: int, current_user: User = Depends(get_current_user), db
         raise HTTPException(status_code=404, detail="Fact not found")
     db.delete(fact)
     db.commit()
+    delete_global_embedding(fact_id, "fact")
     return {"message": "Fact deleted successfully"}

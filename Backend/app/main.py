@@ -6,13 +6,15 @@ from app.database import Base, engine, get_db
 from app.models import User
 from app.schemas import UserCreate, UserResponse, UserLogin, Token
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
+
 from app.Chat import router as chat_router
-from app.memory import router as memory_router # [NEW IMPORT]
+from app.memory import router as memory_router
 from app.rag import router as rag_router
 from app.notes import router as notes_router
 from app.projects import router as projects_router
 from app.decisions import router as decisions_router
 from app.learning import router as learning_router
+from app.search import router as search_router
 
 
 
@@ -35,6 +37,7 @@ app.include_router(notes_router)
 app.include_router(projects_router)
 app.include_router(decisions_router)
 app.include_router(learning_router)
+app.include_router(search_router)
 
 
 

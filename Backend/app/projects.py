@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models import User, Project, Task
 from app.schemas import ProjectCreate, ProjectUpdate, ProjectResponse, TaskCreate, TaskUpdate, TaskResponse
 from app.auth import get_current_user
+from app.search import upsert_global_embedding, delete_global_embedding
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -38,6 +39,7 @@ def create_project(
     db.add(new_project)
     db.commit()
     db.refresh(new_project)
+    upsert_global_embedding(new_project.id, "project", current_user.id, new_project.name, new_project.description or "")
     return new_project
 
 @router.get("", response_model=List[ProjectResponse])
@@ -75,6 +77,7 @@ def update_project(
         
     db.commit()
     db.refresh(project)
+    upsert_global_embedding(project.id, "project", current_user.id, project.name, project.description or "")
     return project
 
 @router.delete("/{project_id}")
@@ -89,6 +92,7 @@ def delete_project(
     
     db.delete(project)
     db.commit()
+    delete_global_embedding(project_id, "project")
     return {"message": "Project deleted successfully"}
 
 # --- Tasks CRUD ---
@@ -108,6 +112,7 @@ def create_task(
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+    upsert_global_embedding(new_task.id, "task", current_user.id, new_task.title, new_task.description or "")
     return new_task
 
 @router.get("/{project_id}/tasks", response_model=List[TaskResponse])
@@ -144,6 +149,7 @@ def update_task(
         
     db.commit()
     db.refresh(task)
+    upsert_global_embedding(task.id, "task", current_user.id, task.title, task.description or "")
     return task
 
 @router.delete("/{project_id}/tasks/{task_id}")
@@ -163,6 +169,7 @@ def delete_task(
         
     db.delete(task)
     db.commit()
+    delete_global_embedding(task_id, "task")
     return {"message": "Task deleted successfully"}
 
 # --- AI Features ---

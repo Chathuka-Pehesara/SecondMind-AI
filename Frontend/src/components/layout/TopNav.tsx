@@ -6,9 +6,10 @@ import { Button } from '../ui/Button';
 
 interface TopNavProps {
   onOpenSidebar: () => void;
+  onOpenSearch?: () => void;
 }
 
-export const TopNav: React.FC<TopNavProps> = ({ onOpenSidebar }) => {
+export const TopNav: React.FC<TopNavProps> = ({ onOpenSidebar, onOpenSearch }) => {
   const location = useLocation();
 
   // Dynamically set page title based on path
@@ -20,6 +21,17 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenSidebar }) => {
     if (path === '/settings') return 'Settings';
     return 'SecondMind';
   };
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        onOpenSearch?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenSearch]);
 
   return (
     <header className="flex items-center justify-between h-16 px-6 glass-effect border-b border-slate-200/50 dark:border-white/5 sticky top-0 z-30">
@@ -37,13 +49,14 @@ export const TopNav: React.FC<TopNavProps> = ({ onOpenSidebar }) => {
       </div>
 
       {/* Center Search Mockup - ChatGPT/Linear style */}
-      <div className="hidden md:flex items-center max-w-sm w-full mx-4">
-        <div className="relative w-full group">
+      <div className="hidden md:flex items-center max-w-sm w-full mx-4 cursor-pointer" onClick={onOpenSearch}>
+        <div className="relative w-full group pointer-events-none">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-zinc-500 group-focus-within:text-brand-500 dark:group-focus-within:text-brand-400 transition-colors" />
           <input
             type="text"
+            readOnly
             placeholder="Search memories, thoughts..."
-            className="w-full pl-10 pr-12 py-1.5 text-xs bg-slate-100/50 dark:bg-zinc-900/40 border border-slate-200/60 dark:border-white/5 rounded-xl focus:outline-none focus:border-brand-500/50 dark:focus:border-brand-400/50 focus:bg-white dark:focus:bg-zinc-900/80 transition-all text-slate-800 dark:text-zinc-200"
+            className="w-full pl-10 pr-12 py-1.5 text-xs bg-slate-100/50 dark:bg-zinc-900/40 border border-slate-200/60 dark:border-white/5 rounded-xl focus:outline-none focus:border-brand-500/50 dark:focus:border-brand-400/50 focus:bg-white dark:focus:bg-zinc-900/80 transition-all text-slate-800 dark:text-zinc-200 cursor-pointer"
           />
           <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border border-slate-200/70 dark:border-white/10 bg-white dark:bg-zinc-950/80 text-[9px] font-medium text-slate-400 dark:text-zinc-500 shadow-sm">
             <span>⌘</span>
