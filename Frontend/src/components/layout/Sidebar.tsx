@@ -13,7 +13,8 @@ import {
   StickyNote,
   FolderKanban,
   Scale,
-  GraduationCap
+  GraduationCap,
+  LineChart
 } from 'lucide-react';
 
 
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'AI Insights', path: '/dashboard/insights', icon: LineChart },
     { name: 'Learning AI', path: '/dashboard/learning', icon: GraduationCap },
     { name: 'AI Decisions', path: '/dashboard/decisions', icon: Scale },
 
@@ -44,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Memory Vault', path: '/dashboard/memories', icon: Brain },
     { name: 'Connections', path: '/dashboard/connections', icon: Network },
     { name: 'Settings', path: '/settings', icon: Settings },
+
 
   ];
 

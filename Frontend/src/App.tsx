@@ -17,6 +17,7 @@ import { ProjectDetailsPage } from './pages/Dashboard/ProjectDetailsPage';
 import { DecisionAssistantPage } from './pages/Dashboard/DecisionAssistantPage';
 import { LearningAssistantPage } from './pages/Dashboard/LearningAssistantPage';
 import { StudyModulePage } from './pages/Dashboard/StudyModulePage';
+import { InsightsPage } from './pages/Dashboard/InsightsPage';
 
 
 
@@ -47,6 +48,7 @@ function App() {
                 <Route path="dashboard/decisions" element={<DecisionAssistantPage />} />
                 <Route path="dashboard/learning" element={<LearningAssistantPage />} />
                 <Route path="dashboard/learning/:id" element={<StudyModulePage />} />
+                <Route path="dashboard/insights" element={<InsightsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
 
 
